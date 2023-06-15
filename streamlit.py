@@ -1,6 +1,7 @@
 import cv2
 import streamlit as st
 import numpy as np
+import pickle
 
 
 def brighten_image(image, amount):
@@ -26,16 +27,39 @@ def draw_face_boxes(image, faces):
     return image
 
 
+def save_database(database, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(database, file)
+
+
+def load_database(filename):
+    try:
+        with open(filename, 'rb') as file:
+            database = pickle.load(file)
+            return database
+    except FileNotFoundError:
+        return {}
+
+
 def main_loop():
-    st.title("OpenCV Demo App")
-    st.subheader("Aplikasi ini memungkinkan Anda untuk memanipulasi filter gambar dan melakukan face recognition menggunakan OpenCV dan Streamlit")
+    st.title("Security System Unknown People Detection Web App")
+    st.subheader("Based Face Recognition")
 
     brightness_amount = st.sidebar.slider("Brightness", min_value=-50, max_value=50, value=0)
     apply_enhancement_filter = st.sidebar.checkbox('Enhance Details')
     apply_face_recognition = st.sidebar.checkbox('Face Recognition')
 
-    video_capture = cv2.VideoCapture(0)
+    available_cameras = {
+        'Camera 0': 0,
+        'Camera 1': 1,
+        'Camera 2': 2
+    }
+
+    selected_camera = st.sidebar.selectbox("Pilih Kamera", list(available_cameras.keys()))
+
+    video_capture = cv2.VideoCapture(available_cameras[selected_camera])
     frame_placeholder = st.empty()
+    face_label_text = st.empty()
 
     while True:
         _, frame = video_capture.read()
@@ -50,96 +74,24 @@ def main_loop():
             faces = detect_faces(frame)
             processed_image = draw_face_boxes(processed_image, faces)
 
-        frame_placeholder.image(processed_image)
+            if len(faces) > 0:
+                (x, y, w, h) = faces[0]
+                face_image = frame_rgb[y:y+h, x:x+w]
+                face_label = f"Face 1"
+
+                if face_label not in database:
+                    database[face_label] = face_image
+
+                save_database(database, database_file)
+
+                face_label_text.text(face_label)
+
+        frame_placeholder.image(processed_image, channels="RGB")
 
     video_capture.release()
 
 
 if __name__ == '__main__':
+    database_file = "database.pkl"
+    database = load_database(database_file)
     main_loop()
-
-'''from mtcnn.mtcnn import MTCNN
-import streamlit as st
-import matplotlib.pyplot as plt 
-from matplotlib.patches import Rectangle
-from matplotlib.patches import Circle
-from PIL import Image
-from numpy import asarray
-from scipy.spatial.distance import cosine
-from keras_vggface.vggface import VGGFace
-from keras_vggface.utils import preprocess_input
-
-choice = st.selectbox("Select Option",[
-    "Face Detection",
-    "Face Detection 2",
-    "Face Verification"
-])
-
-def main():
-    fig = plt.figure()
-    if choice == "Face Detection":
-        uploaded_file = st.file_uploader("Choose File", type=["jpg","png"])
-        if uploaded_file is not None:
-            data = asarray(Image.open(uploaded_file))
-            plt.axis("off")
-            plt.imshow(data)
-            ax = plt.gca()
-          
-            detector = MTCNN()
-            faces = detector.detect_faces(data)
-            for face in faces:
-                x, y, width, height = face['box']
-                rect = Rectangle((x, y), width, height, fill=False, color='maroon')
-                ax.add_patch(rect)
-                for _, value in face['keypoints'].items():
-                    dot = Circle(value, radius=2, color='maroon')
-                    ax.add_patch(dot)
-            st.pyplot(fig)
-            
-            results = detector.detect_faces(pixels)
-            x1, y1, width, height = results[0]["box"]
-            x2, y2 = x1 + width, y1 + height
-            face = pixels[y1:y2, x1:x2]
-    
-    elif choice == "Face Detection 2":
-            uploaded_file = st.file_uploader("Choose File", type=["jpg","png"])
-            if uploaded_file is not None:
-                column1, column2 = st.beta_columns(2)
-                image = Image.open(uploaded_file)
-                with column1:
-                    size = 450, 450
-                    resized_image = image.thumbnail(size)
-                    image.save("thumb.png")
-                    st.image("thumb.png")
-                pixels = asarray(image)
-                plt.axis("off")
-                plt.imshow(pixels)
-                detector = MTCNN()
-                results = detector.detect_faces(pixels)
-                x1, y1, width, height = results[0]["box"]
-                x2, y2 = x1 + width, y1 + height
-                face = pixels[y1:y2, x1:x2]
-                image = Image.fromarray(face)
-                image = image.resize((224, 224)) 
-                face_array = asarray(image)
-                with column2:
-                     plt.imshow(face_array)
-                     st.pyplot(fig)
-
-    def extract_face(file):
-        pixels = asarray(file)
-        plt.axis("off")
-        plt.imshow(pixels)
-        detector = MTCNN()
-        results = detector.detect_faces(pixels)
-        x1, y1, width, height = results[0]["box"]
-        x2, y2 = x1 + width, y1 + height
-        face = pixels[y1:y2, x1:x2]
-        image = Image.fromarray(face)
-        image = image.resize((224, 224))
-        face_array = asarray(image)
-        return face_array
-
-if __name__ == "__main__":
-    main()
-'''
