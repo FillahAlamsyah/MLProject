@@ -52,7 +52,7 @@ def main_loop():
     available_cameras = {
         'Camera 0': 0,
         'Camera 1': 1,
-        'Camera 2': 2
+        'Camera 2': 'http://192.168.183.6:8501'
     }
 
     selected_camera = st.sidebar.selectbox("Pilih Kamera", list(available_cameras.keys()))
