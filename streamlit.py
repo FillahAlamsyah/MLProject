@@ -1,5 +1,5 @@
 import os
-os.system("pip install mtcnn")
+os.system("pip install -r requirements.txt")
 from mtcnn.mtcnn import MTCNN
 import streamlit as st
 import matplotlib.pyplot as plt 
