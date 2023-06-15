@@ -1,3 +1,5 @@
+import os
+os.system("pip install mtcnn")
 from mtcnn.mtcnn import MTCNN
 import streamlit as st
 import matplotlib.pyplot as plt 
