@@ -5,6 +5,7 @@ keras-vggface
 matplotlib
 numpy
 oauthlib
+opencv-python
 opencv-python-headless
 pandas
 Pillow
