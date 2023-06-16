@@ -14,3 +14,4 @@ streamlit
 tensorflow-cpu
 mtcnn
 streamlit-embedcode
+moviepy
