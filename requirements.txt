@@ -13,3 +13,4 @@ scipy
 streamlit
 tensorflow-cpu
 mtcnn
+streamlit-embedcode
